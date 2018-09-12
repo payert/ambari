@@ -101,6 +101,8 @@ class HdfsResourceJar:
       for nameservice in nameservices:
         try:
           nameservice = protocol + "://" + nameservice
+          if protocol in ['wasb', 'wasbs', 'abfs', 'abfss', 'adl', 'adls', 'adlss']:
+            nameservice = main_resource.resource.default_fs
           self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
         except namenode_ha_utils.NoActiveNamenodeException as ex:
           # one of ns can be down (during initial start forexample) no need to worry for federated cluster
