@@ -96,7 +96,6 @@ public class UpgradeCatalog271Test {
     Method removeLogSearchPatternConfigs = UpgradeCatalog271.class.getDeclaredMethod("removeLogSearchPatternConfigs");
     Method updateSolrConfigurations = UpgradeCatalog271.class.getDeclaredMethod("updateSolrConfigurations");
     Method updateTimelineReaderAddress = UpgradeCatalog271.class.getDeclaredMethod("updateTimelineReaderAddress");
-
     UpgradeCatalog271 upgradeCatalog271 = createMockBuilder(UpgradeCatalog271.class)
       .addMockedMethod(updateRangerKmsDbUrl)
       .addMockedMethod(updateRangerLogDirConfigs)
