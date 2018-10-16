@@ -146,3 +146,4 @@ class UbuntuRepositoryProvider(RepositoryProvider):
               ignore_failures = True,
               sudo = True,
       )
+
