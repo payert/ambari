@@ -1283,7 +1283,7 @@ class TestOozieServer(RMFTestCase):
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', None,
-                              action=['create'],
+        action = ['create'],
     )
     self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
     self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)
@@ -1375,8 +1375,8 @@ class TestOozieServer(RMFTestCase):
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', None,
-                              action=['create'],
-    )
+        action = ['create'],
+    )    
     self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
     self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)
     self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4-native'), retry_count = 5, retry_on_repo_unavailability = False)
@@ -1475,7 +1475,7 @@ class TestOozieServer(RMFTestCase):
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', None,
-                              action=['create'],
+        action = ['create'],
     )
     self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
     self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)
@@ -1743,7 +1743,7 @@ class TestOozieServer(RMFTestCase):
         mirror_list = None,
     )
     self.assertResourceCalled('Repository', None,
-                              action=['create'],
+        action = ['create'],
     )
     self.assertResourceCalled('Package', ('lzo'), retry_count=5, retry_on_repo_unavailability= False)
     self.assertResourceCalled('Package', ('hadooplzo_1_2_3_4'), retry_count = 5, retry_on_repo_unavailability = False)
