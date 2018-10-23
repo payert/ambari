@@ -478,7 +478,7 @@ class RecoveryManager:
           # However it important to keep map actual, for this reason relation could be updated if service will
           #  push another service <-> component relation
           self.__component_to_service_map[component] = service
-
+          
         self.enabled_components = enabled_components_list
 
   def on_config_update(self):

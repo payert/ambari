@@ -99,7 +99,7 @@ class TestUpdateRepo(TestCase):
     file_mock.reset_mock()
     failed = False
     mock_config.return_value = { "configurations": {
-                                        "clugit ster-env": {
+                                        "cluster-env": {
                                                 "repo_suse_rhel_template": "REPO_SUSE_RHEL_TEST_TEMPLATE",
                                                 "repo_ubuntu_template": "REPO_UBUNTU_TEMPLATE"
                                         }
