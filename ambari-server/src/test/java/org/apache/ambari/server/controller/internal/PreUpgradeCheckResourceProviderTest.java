@@ -46,6 +46,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -239,6 +240,7 @@ public class PreUpgradeCheckResourceProviderTest {
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         bind(UpgradeCheckRegistry.class).toInstance(registry);
         bind(UpgradeHelper.class).toProvider(TestUpgradeHelperProvider.class);
+        bind(AmbariLdapConfigurationProvider.class).toInstance(createNiceMock(AmbariLdapConfigurationProvider.class));
 
         requestStaticInjection(PreUpgradeCheckResourceProvider.class);
       }

@@ -48,6 +48,7 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -113,6 +114,8 @@ public class HostUpdateHelperTest {
       @Override
       protected void configure() {
         bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(AmbariLdapConfigurationProvider.class).toInstance(createNiceMock(AmbariLdapConfigurationProvider.class));
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
        }
     });
 
@@ -252,7 +255,7 @@ public class HostUpdateHelperTest {
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addClustersBinding(mockAmbariManagementController).build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addClustersBinding(mockAmbariManagementController).addLdapBindings().build().configure(binder());
         bind(StackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(StackManagerFactory.class));
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(EntityManager.class).toInstance(entityManager);
@@ -493,7 +496,7 @@ public class HostUpdateHelperTest {
       @Override
       protected void configure() {
 
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().addLdapBindings().build().configure(binder());
 
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(EntityManager.class).toInstance(entityManager);

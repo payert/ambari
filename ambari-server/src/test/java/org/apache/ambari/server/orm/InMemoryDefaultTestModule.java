@@ -27,6 +27,7 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.ldap.LdapModule;
+import org.apache.ambari.server.ldap.service.AmbariLdapConfigurationProvider;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stack.StackManagerMock;
@@ -134,6 +135,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
       AuditLogger al = EasyMock.createNiceMock(AuditLogger.class);
       EasyMock.expect(al.isEnabled()).andReturn(false).anyTimes();
       bind(AuditLogger.class).toInstance(al);
+      bind(AmbariLdapConfigurationProvider.class).toInstance(EasyMock.createMock(AmbariLdapConfigurationProvider.class));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
