@@ -39,7 +39,6 @@ import javax.xml.bind.Marshaller;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.controller.ControllerModule;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -595,7 +594,7 @@ public class StackMerger {
     LOG.info("********* Initializing Stack Merger *********");
     Injector injector = Guice.createInjector(new ControllerModule(), new StackMergerAuditModule(), new LdapModule());
     GuiceJpaInitializer jpaInitializer = injector.getInstance(GuiceJpaInitializer.class);
-    jpaInitializer.setInitialized(injector.getInstance(AmbariEventPublisher.class));
+    jpaInitializer.setInitialized();
     StackMerger stackMerger = injector.getInstance(StackMerger.class);
     LOG.info("********* Stack Merger Initialized *********");
     stackMerger.mergeStacks(ctx);
