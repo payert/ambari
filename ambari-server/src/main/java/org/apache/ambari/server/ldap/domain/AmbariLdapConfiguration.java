@@ -66,7 +66,7 @@ public class AmbariLdapConfiguration extends AmbariServerConfiguration {
   }
 
   public int serverPort() {
-    return Integer.valueOf(configValue(AmbariServerConfigurationKey.SERVER_PORT));
+    return Integer.parseInt(configValue(AmbariServerConfigurationKey.SERVER_PORT));
   }
 
   public String serverUrl() {
@@ -79,7 +79,7 @@ public class AmbariLdapConfiguration extends AmbariServerConfiguration {
 
   public int secondaryServerPort() {
     final String secondaryServerPort = configValue(AmbariServerConfigurationKey.SECONDARY_SERVER_PORT);
-    return secondaryServerPort == null ? 0 : Integer.valueOf(secondaryServerPort);
+    return secondaryServerPort == null ? 0 : Integer.parseInt(secondaryServerPort);
   }
 
   public String secondaryServerUrl() {

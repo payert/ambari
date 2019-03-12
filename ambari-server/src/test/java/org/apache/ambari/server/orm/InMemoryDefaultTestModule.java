@@ -57,10 +57,6 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     private static final AtomicReference<Set<BeanDefinition>> foundNotificationBeanDefinitions
         = new AtomicReference<>(null);
 
-    private static final AtomicReference<Set<BeanDefinition>> foundUpgradeChecksDefinitions
-        = new AtomicReference<>(null);
-
-
     public BeanDefinitionsCachingTestControllerModule(Properties properties) throws Exception {
       super(properties);
     }
@@ -78,13 +74,6 @@ public class InMemoryDefaultTestModule extends AbstractModule {
       foundNotificationBeanDefinitions.compareAndSet(null, Collections.unmodifiableSet(newBeanDefinitions));
       return null;
     }
-
-    @Override
-    protected Set<BeanDefinition> registerUpgradeChecks(Set<BeanDefinition> beanDefinitions){
-      Set<BeanDefinition> newBeanDefinition = super.registerUpgradeChecks(foundUpgradeChecksDefinitions.get());
-      foundUpgradeChecksDefinitions.compareAndSet(null, Collections.unmodifiableSet(newBeanDefinition));
-      return null;
-    }
   }
 
   @Override
@@ -93,6 +82,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     String version = "src/test/resources/version";
     String sharedResourcesDir = "src/test/resources/";
     String resourcesDir = "src/test/resources/";
+    String mpacksv2 = "src/main/resources/mpacks-v2";
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()), "version").getPath();
@@ -136,6 +126,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
       EasyMock.expect(al.isEnabled()).andReturn(false).anyTimes();
       bind(AuditLogger.class).toInstance(al);
       bind(AmbariLdapConfigurationProvider.class).toInstance(EasyMock.createMock(AmbariLdapConfigurationProvider.class));
+
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

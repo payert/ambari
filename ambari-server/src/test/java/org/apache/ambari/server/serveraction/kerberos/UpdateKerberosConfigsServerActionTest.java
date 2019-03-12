@@ -78,7 +78,8 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
       @Override
       protected void configure() {
         PartialNiceMockBinder.newBuilder(UpdateKerberosConfigsServerActionTest.this)
-            .addClustersBinding().addLdapBindings().build().configure(binder());
+            .addLdapBindings()
+            .addClustersBinding().build().configure(binder());
 
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));

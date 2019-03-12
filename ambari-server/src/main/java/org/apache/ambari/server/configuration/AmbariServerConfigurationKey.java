@@ -80,7 +80,7 @@ public enum AmbariServerConfigurationKey {
   DISABLE_ENDPOINT_IDENTIFICATION(AmbariServerConfigurationCategory.LDAP_CONFIGURATION, "ambari.ldap.advanced.disable_endpoint_identification", PLAINTEXT, "false", "Determines whether to disable endpoint identification (hostname verification) during SSL handshake while updating from LDAP.", false),
 
   /* ********************************************************
-   * SSO Configuration Keys
+   * Trusted Proxy Configuration Keys
    * ******************************************************** */
   SSO_MANAGE_SERVICES(AmbariServerConfigurationCategory.SSO_CONFIGURATION, "ambari.sso.manage_services", PLAINTEXT, "false", "A Boolean value indicating whether Ambari is to manage the SSO configuration for services or not.", false),
   SSO_ENABLED_SERVICES(AmbariServerConfigurationCategory.SSO_CONFIGURATION, "ambari.sso.enabled_services", PLAINTEXT, null, "A comma-delimited list of services that are expected to be configured for SSO.  A \"*\" indicates all services.", false),

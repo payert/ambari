@@ -496,7 +496,7 @@ public class HostUpdateHelperTest {
       @Override
       protected void configure() {
 
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().addLdapBindings().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addLdapBindings().addFactoriesInstallBinding().build().configure(binder());
 
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(EntityManager.class).toInstance(entityManager);
