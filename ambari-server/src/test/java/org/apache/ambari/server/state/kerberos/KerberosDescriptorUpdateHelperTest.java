@@ -96,7 +96,6 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
         Configuration configuration = new Configuration(properties);
 
         PartialNiceMockBinder.newBuilder(KerberosDescriptorUpdateHelperTest.this).addConfigsBindings()
-            .addLdapBindings()
             .addFactoriesInstallBinding().build().configure(binder());
 
         install(new FactoryModuleBuilder().build(StackManagerFactory.class));

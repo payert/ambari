@@ -347,7 +347,6 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
 
       PartialNiceMockBinder.newBuilder(ComponentVersionAlertRunnableTest.this).addConfigsBindings()
           .addDBAccessorBinding()
-          .addLdapBindings()
           .addFactoriesInstallBinding()
           .addAmbariMetaInfoBinding()
           .addLdapBindings()
