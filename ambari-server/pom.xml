@@ -630,7 +630,6 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
-        <version>1.7</version>
         <executions>
           <execution>
             <!-- unbinds rpm creation from maven lifecycle -->

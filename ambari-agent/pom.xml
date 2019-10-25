@@ -119,11 +119,6 @@
     </dependency>
     <dependency>
       <groupId>org.apache.zookeeper</groupId>
-      <artifactId>zookeeper</artifactId>
-      <version>3.5.5</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.zookeeper</groupId>
       <artifactId>zookeeper-jute</artifactId>
       <version>3.5.5</version>
     </dependency>
