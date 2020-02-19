@@ -251,6 +251,8 @@ class WebHDFSUtil:
       raise Fail("Target cannot be empty")
 
     url = format("{address}/webhdfs/v1{target}?op={operation}", address=self.address)
+    url = url.replace(' ', '%20')
+
     request_args = kwargs
 
     if not self.security_enabled:
