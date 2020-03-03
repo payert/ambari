@@ -82,6 +82,7 @@ setup(
   install_requires=[
    'mock==1.0.1',
    'coilmq==1.0.1'
+   'crc32c=2.0'
   ],
   include_package_data = True,
   long_description="The Apache Ambari project is aimed at making Hadoop management simpler by developing software for provisioning, managing, and monitoring Apache Hadoop clusters. "

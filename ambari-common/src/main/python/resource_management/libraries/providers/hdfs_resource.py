@@ -499,6 +499,27 @@ class HdfsResourceWebHDFS:
     list_status = self.util.run_command(target, 'GETFILESTATUS', method='GET', ignore_status_codes=['404'], assertable_result=False)
     return list_status['FileStatus'] if 'FileStatus' in list_status else None
 
+  def _get_file_checksum(self):
+    cmd_result, std_out_msg  = shell.checked_call(["hadoop", "fs", "-Ddfs.checksum.combine.mode=COMPOSITE_CRC" "-checksum", self.main_resource.resource.target])
+    if cmd_result == 0:
+      p = re.compile('^.*COMPOSITE-CRC32\s([a-fA-F0-9]+)$')
+      m = p.match(std_out_msg)
+      crc = m.group(1)
+      return crc
+
+  @staticmethod
+  def _parse_hadoop_checksum(self, cmd_out):
+    checksum = None
+    if cmd_out:
+      # TODO: Support CRC32 and CRC32C!
+      pattern = re.compile('^.*COMPOSITE-CRC32C\s([a-fA-F0-9]+)$')
+      match = pattern.match(cmd_out)
+      if match:
+        checksum = match.group(1)
+      else:
+        Logger.warning("Unable to parse Hadoop file checksum results: '{0}'".format(cmd_out))
+    return checksum
+
   def _list_directory(self, target):
     results = self.util.run_command(target, 'LISTSTATUS', method='GET', ignore_status_codes=['404'], assertable_result=False)
     entry = results['FileStatuses'] if 'FileStatuses' in results else None
@@ -706,5 +727,8 @@ class HdfsResourceProvider(Provider):
     
     Execute(format("{kinit_path} -kt {keytab_file} {principal_name}"),
             user=user
-    )    
+    )
+
+  def _isIdentical(self, first_file, second_file):
+
 
