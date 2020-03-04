@@ -17,5 +17,27 @@ limitations under the License.
 '''
 
 from unittest import TestCase
+from resource_management.libraries.providers.hdfs_resource import HdfsResourceWebHDFS
+from resource_management.core.logger import Logger
+from mock.mock import MagicMock
 
 class TestHdfsResource(TestCase):
+
+  def setUp(self):
+    Logger.logger = MagicMock()
+
+  def test_parse_hadoop_checksum(self):
+    checksum = HdfsResourceWebHDFS._parse_hadoop_checksum(None, Logger)
+    self.assertIsNone(checksum, "Checksum value should be None.")
+
+    checksum = HdfsResourceWebHDFS._parse_hadoop_checksum("/tmp/install_kdc.sh	COMPOSITE-CRC32C	faa0ea32", Logger)
+    self.assertEquals(checksum, "faa0ea32")
+
+    checksum = HdfsResourceWebHDFS._parse_hadoop_checksum("/tmp/install_kdc.sh2	COMPOSITE-CRC32	d23d1869", Logger)
+    self.assertIsNone(checksum, "Checksum value should be None because the COMPOSITE-CRC32 combine mode is not yet supported.")
+
+    checksum = HdfsResourceWebHDFS._parse_hadoop_checksum("/tmp/test folder123/Neurotyping test Results.pdf	COMPOSITE-CRC32C	b882e764", Logger)
+    self.assertEquals(checksum, "b882e764")
+
+    checksum = HdfsResourceWebHDFS._parse_hadoop_checksum("/tmp/test folder123/Plant Paradox -1234.docx	COMPOSITE-CRC32C	9636e782", Logger)
+    self.assertEquals(checksum, "9636e782")

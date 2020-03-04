@@ -478,7 +478,7 @@ class HdfsResourceWebHDFS:
       local_file_size = os.stat(target).st_size # TODO: os -> sudo
 
       # TODO: re-implement this using checksums
-      if local_file_size == length:
+      if local_file_size == length :
         Logger.info(format("DFS file {source} is identical to {target}, skipping the download"))
         return
       elif not self.main_resource.resource.replace_existing_files:
@@ -500,15 +500,16 @@ class HdfsResourceWebHDFS:
     return list_status['FileStatus'] if 'FileStatus' in list_status else None
 
   def _get_file_checksum(self):
-    cmd_result, std_out_msg  = shell.checked_call(["hadoop", "fs", "-Ddfs.checksum.combine.mode=COMPOSITE_CRC" "-checksum", self.main_resource.resource.target])
+    checksum = None
+    cmd_result, std_out_msg = shell.checked_call(["hadoop", "fs", "-Ddfs.checksum.combine.mode=COMPOSITE_CRC" "-checksum", self.main_resource.resource.target])
     if cmd_result == 0:
-      p = re.compile('^.*COMPOSITE-CRC32\s([a-fA-F0-9]+)$')
-      m = p.match(std_out_msg)
-      crc = m.group(1)
-      return crc
+      checksum = self._parse_hadoop_checksum(std_out_msg)
+    else:
+      Logger.warning(format("Hadoop -checksum command returned {cmd_result} for {self.main_resource.resource.target} resource, with the output: {std_out_msg}."))
+    return checksum
 
   @staticmethod
-  def _parse_hadoop_checksum(self, cmd_out):
+  def _parse_hadoop_checksum(cmd_out, logger=Logger):
     checksum = None
     if cmd_out:
       # TODO: Support CRC32 and CRC32C!
@@ -516,8 +517,8 @@ class HdfsResourceWebHDFS:
       match = pattern.match(cmd_out)
       if match:
         checksum = match.group(1)
-      else:
-        Logger.warning("Unable to parse Hadoop file checksum results: '{0}'".format(cmd_out))
+      elif logger:
+        logger.warning("Unable to parse Hadoop file checksum results: '{0}'".format(cmd_out))
     return checksum
 
   def _list_directory(self, target):
@@ -730,5 +731,7 @@ class HdfsResourceProvider(Provider):
     )
 
   def _isIdentical(self, first_file, second_file):
+    # TODO
+    print "Hello"
 
 
