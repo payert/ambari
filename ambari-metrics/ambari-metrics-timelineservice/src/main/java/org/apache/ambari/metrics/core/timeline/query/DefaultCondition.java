@@ -261,7 +261,7 @@ public class DefaultCondition implements Condition {
       // UUID (NOT) IN (?,?,?,?)
       if (CollectionUtils.isNotEmpty(uuids)) {
         sb.append("UUID");
-        if (metricNamesNotCondition) {
+        if (uuidNotCondition) {
           sb.append(" NOT");
         }
         sb.append(" IN (");

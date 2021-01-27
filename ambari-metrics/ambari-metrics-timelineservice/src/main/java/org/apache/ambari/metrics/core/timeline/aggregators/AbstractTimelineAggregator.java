@@ -332,7 +332,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     }
     queryPrefix = String.format(queryPrefix, outputTableName);
 
-    for (Iterator<CustomDownSampler> iterator = configuredDownSamplers.iterator(); iterator.hasNext();){
+    for (Iterator<CustomDownSampler> iterator = configuredDownSamplers.iterator(); iterator.hasNext();) {
       CustomDownSampler downSampler = iterator.next();
 
       if (downSampler.validateConfigs()) {

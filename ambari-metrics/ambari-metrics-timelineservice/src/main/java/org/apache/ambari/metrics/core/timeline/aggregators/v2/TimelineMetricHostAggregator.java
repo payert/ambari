@@ -64,6 +64,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
 
   @Override
   protected Condition prepareMetricQueryCondition(long startTime, long endTime) {
+    // GET_AGGREGATED_HOST_METRIC_GROUPBY_SQL
     String query = String.format(
         "UPSERT INTO %s (UUID, SERVER_TIME, METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) " +
             "SELECT UUID, %s AS SERVER_TIME, SUM(METRIC_SUM), SUM(METRIC_COUNT), MAX(METRIC_MAX), MIN(METRIC_MIN) " +

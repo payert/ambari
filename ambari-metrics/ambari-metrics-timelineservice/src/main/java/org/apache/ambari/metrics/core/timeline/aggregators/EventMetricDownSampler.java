@@ -22,6 +22,7 @@ package org.apache.ambari.metrics.core.timeline.aggregators;
 import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
 import org.apache.ambari.metrics.core.timeline.query.Condition;
 import org.apache.ambari.metrics.core.timeline.query.DefaultCondition;
+import org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -121,6 +122,15 @@ public class EventMetricDownSampler implements CustomDownSampler{
   public List<Condition> prepareDownSamplingCondition(Long startTime, Long endTime, String tableName) {
     List<Condition> conditions = new ArrayList<>();
     String[] metricPatternList = metricPatterns.split(",");
+
+    // Generate UPSERT query prefix. UPSERT part of the query is needed on the Aggregator side.
+    // SELECT part of the query is provided by the downsampler.
+    String queryPrefix = PhoenixTransactSQL.DOWNSAMPLE_CLUSTER_METRIC_SQL_UPSERT_PREFIX;
+    if (outputTableName.contains("RECORD")) {
+      queryPrefix = PhoenixTransactSQL.DOWNSAMPLE_HOST_METRIC_SQL_UPSERT_PREFIX;
+    }
+    queryPrefix = String.format(queryPrefix, outputTableName);
+
 
     String aggregateColumnName = "METRIC_COUNT";
     if (tableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME)) {
