@@ -54,7 +54,9 @@ public class DownSamplerUtils {
     List<String> metricPatterns = new ArrayList<>();
     Set<String> keys = conf.keySet();
     for (String key : keys) {
-      if (key.endsWith(downSamplerMetricPatternsConfig)) {
+//      Only enable the Event Downsampler for now.
+//      if (key.endsWith(downSamplerMetricPatternsConfig)) {
+      if (key.endsWith(downSamplerMetricPatternsConfig) && key.contains(eventDownSamplerKey)) {
         String patternString = conf.get(key);
         String[] patterns = StringUtils.split(patternString, ",");
         for (String pattern : patterns) {
@@ -109,9 +111,10 @@ public class DownSamplerUtils {
       return null;
     }
 
+    /* Only enable the Event Downsampler for now.
     if (StringUtils.isNotEmpty(type) && type.equalsIgnoreCase(topNDownSamplerKey)) {
       return TopNDownSampler.fromConfig(conf);
-    }
+    } */
 
     if (StringUtils.isNotEmpty(type) && type.equalsIgnoreCase(eventDownSamplerKey)) {
       return EventMetricDownSampler.fromConfig(conf, hBaseAccessor);
