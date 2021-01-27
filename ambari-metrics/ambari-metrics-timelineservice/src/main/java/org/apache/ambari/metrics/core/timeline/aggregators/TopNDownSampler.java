@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.metrics.core.timeline.query.Condition;
 import org.apache.ambari.metrics.core.timeline.query.TopNCondition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -107,6 +108,12 @@ public class TopNDownSampler implements CustomDownSampler {
     }
 
     return stmts;
+  }
+
+  @Override
+  public List<Condition> prepareDownSamplingCondition(Long startTime, Long endTime, String tableName) {
+    // TODO
+    return null;
   }
 
 }

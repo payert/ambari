@@ -21,11 +21,14 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.ambari.metrics.core.timeline.aggregators.AbstractTimelineAggregator;
 import org.apache.ambari.metrics.core.timeline.availability.AggregationTaskRunner;
 import org.apache.ambari.metrics.core.timeline.availability.MetricCollectorHAController;
+import org.apache.ambari.metrics.core.timeline.query.AggregateCondition;
 import org.apache.ambari.metrics.core.timeline.query.Condition;
+import org.apache.ambari.metrics.core.timeline.query.DefaultCondition;
 import org.apache.ambari.metrics.core.timeline.query.EmptyCondition;
 import org.apache.ambari.metrics.core.timeline.query.PhoenixTransactSQL;
 import org.apache.hadoop.conf.Configuration;
@@ -61,12 +64,16 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
 
   @Override
   protected Condition prepareMetricQueryCondition(long startTime, long endTime) {
-    EmptyCondition condition = new EmptyCondition();
-    condition.setDoUpdate(true);
+    String query = String.format(
+        "UPSERT INTO %s (UUID, SERVER_TIME, METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) " +
+            "SELECT UUID, %s AS SERVER_TIME, SUM(METRIC_SUM), SUM(METRIC_COUNT), MAX(METRIC_MAX), MIN(METRIC_MIN) " +
+            "FROM %s",
+        outputTableName, endTime, tableName);
 
-    condition.setStatement(String.format(GET_AGGREGATED_HOST_METRIC_GROUPBY_SQL,
-      outputTableName, endTime, tableName,
-      getDownsampledMetricSkipClause(), startTime, endTime));
+    AggregateCondition condition = new AggregateCondition(getDownsampledHostMetricSkipUUIDsClause(), startTime, endTime);
+    condition.setStatement(query);
+    condition.setUuidNotCondition(true);
+    condition.setDoUpdate(true);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Condition: " + condition.toString());

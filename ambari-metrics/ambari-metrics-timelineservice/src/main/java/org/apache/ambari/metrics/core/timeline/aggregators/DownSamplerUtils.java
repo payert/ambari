@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -81,7 +82,7 @@ public class DownSamplerUtils {
    * @param configuration
    * @return
    */
-  public static List<CustomDownSampler> getDownSamplers(Configuration configuration) {
+  public static List<CustomDownSampler> getDownSamplers(Configuration configuration, PhoenixHBaseAccessor hBaseAccessor) {
 
     Map<String,String> conf = configuration.getValByRegex(downSamplerConfigPrefix + "*");
     List<CustomDownSampler> downSamplers = new ArrayList<>();
@@ -91,7 +92,7 @@ public class DownSamplerUtils {
       for (String key : keys) {
         if (key.startsWith(downSamplerConfigPrefix) && key.endsWith(downSamplerMetricPatternsConfig)) {
           String type = key.split("\\.")[3];
-          CustomDownSampler downSampler = getDownSamplerByType(type, conf);
+          CustomDownSampler downSampler = getDownSamplerByType(type, conf, hBaseAccessor);
           if (downSampler != null) {
             downSamplers.add(downSampler);
           }
@@ -103,7 +104,7 @@ public class DownSamplerUtils {
     return downSamplers;
   }
 
-  public static CustomDownSampler getDownSamplerByType(String type, Map<String, String> conf) {
+  public static CustomDownSampler getDownSamplerByType(String type, Map<String, String> conf, PhoenixHBaseAccessor hBaseAccessor) {
     if (type == null) {
       return null;
     }
@@ -113,7 +114,7 @@ public class DownSamplerUtils {
     }
 
     if (StringUtils.isNotEmpty(type) && type.equalsIgnoreCase(eventDownSamplerKey)) {
-      return EventMetricDownSampler.fromConfig(conf);
+      return EventMetricDownSampler.fromConfig(conf, hBaseAccessor);
     }
 
     LOG.warn("Unknown downsampler requested : " + type);

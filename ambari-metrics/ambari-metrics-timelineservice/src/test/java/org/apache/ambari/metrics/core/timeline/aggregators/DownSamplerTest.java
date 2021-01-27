@@ -53,7 +53,7 @@ public class DownSamplerTest {
     configuration.setIfUnset("timeline.metrics.downsampler.topn.metric.patterns", "pattern1,pattern2");
     configuration.setIfUnset("timeline.metrics.downsampler.test.metric.patterns", "pattern3");
 
-    List<CustomDownSampler> downSamplers = DownSamplerUtils.getDownSamplers(configuration);
+    List<CustomDownSampler> downSamplers = DownSamplerUtils.getDownSamplers(configuration, null);
     Assert.assertEquals(downSamplers.size(), 1);
     Assert.assertTrue(downSamplers.get(0) instanceof TopNDownSampler);
   }
@@ -102,7 +102,7 @@ public class DownSamplerTest {
 
     Map<String, String> conf = configuration.getValByRegex(DownSamplerUtils.downSamplerConfigPrefix);
 
-    EventMetricDownSampler eventMetricDownSampler = EventMetricDownSampler.fromConfig(conf);
+    EventMetricDownSampler eventMetricDownSampler = EventMetricDownSampler.fromConfig(conf, null);
     List<String> stmts = eventMetricDownSampler.prepareDownSamplingStatement(14000000l, 14100000l, "METRIC_RECORD_UUID");
     Assert.assertEquals(stmts.size(),2);
 

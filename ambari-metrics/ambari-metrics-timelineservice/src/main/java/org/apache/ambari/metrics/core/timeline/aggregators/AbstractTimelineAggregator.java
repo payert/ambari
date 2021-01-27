@@ -30,15 +30,21 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.metrics.core.timeline.availability.MetricCollectorHAController;
 import org.apache.ambari.metrics.core.timeline.query.Condition;
 import org.apache.ambari.metrics.core.timeline.query.EmptyCondition;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.ambari.metrics.core.timeline.PhoenixHBaseAccessor;
@@ -68,6 +74,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
   protected AggregationTaskRunner taskRunner;
   protected List<String> downsampleMetricPatterns;
   protected List<CustomDownSampler> configuredDownSamplers;
+  private Map<String, List<byte[]>> downsampleHostMetricUUIDs;
 
   // Explicitly name aggregators for logging needs
   private final AGGREGATOR_NAME aggregatorName;
@@ -81,7 +88,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     this.checkpointDelayMillis = SECONDS.toMillis(metricsConf.getInt(AGGREGATOR_CHECKPOINT_DELAY, 120));
     this.resultsetFetchSize = metricsConf.getInt(RESULTSET_FETCH_SIZE, 2000);
     this.LOG = LoggerFactory.getLogger(ACTUAL_AGGREGATOR_NAMES.get(aggregatorName));
-    this.configuredDownSamplers = DownSamplerUtils.getDownSamplers(metricsConf);
+    this.configuredDownSamplers = DownSamplerUtils.getDownSamplers(metricsConf, hBaseAccessor);
     this.downsampleMetricPatterns = DownSamplerUtils.getDownsampleMetricPatterns(metricsConf);
   }
 
@@ -259,59 +266,46 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
       "startTime = " + new Date(startTime) + ", endTime = " + new Date(endTime));
 
     boolean success = true;
-    Condition condition = prepareMetricQueryCondition(startTime, endTime);
-
-    Connection conn = null;
-    PreparedStatement stmt = null;
-    ResultSet rs = null;
-
     try {
-      conn = hBaseAccessor.getConnection();
-      // FLUME 2. aggregate and ignore the instance
-      stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
+      Condition condition = prepareMetricQueryCondition(startTime, endTime);
 
-      LOG.debug("Query issued @: " + new Date());
-      if (condition.doUpdate()) {
-        conn.setAutoCommit(true);
-        int rows = stmt.executeUpdate();
-        conn.commit();
-        conn.setAutoCommit(false);
-        LOG.info(rows + " row(s) updated in aggregation.");
+      ResultSet rs = null;
 
-        //TODO : Fix downsampling after UUID change.
-        //downsample(conn, startTime, endTime);
-      } else {
-        rs = stmt.executeQuery();
+      try (Connection conn = hBaseAccessor.getConnection();
+           // FLUME 2. aggregate and ignore the instance
+           PreparedStatement stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition)) {
+
+        LOG.debug("Query issued @: " + new Date());
+        if (condition.doUpdate()) {
+          conn.setAutoCommit(true);
+          int rows = stmt.executeUpdate();
+          conn.commit();
+          conn.setAutoCommit(false);
+          LOG.info(rows + " row(s) updated in aggregation.");
+
+          //TODO : Fix downsampling after UUID change.
+//          downsample(conn, startTime, endTime);
+        } else {
+          rs = stmt.executeQuery();
+        }
+        LOG.debug("Query returned @: " + new Date());
+
+        aggregate(rs, startTime, endTime);
+      } catch (Exception e) {
+        LOG.error("Exception during aggregating metrics.", e);
+        success = false;
+      } finally {
+        if (rs != null) {
+          try {
+            rs.close();
+          } catch (SQLException e) {
+            // Ignore
+          }
+        }
       }
-      LOG.debug("Query returned @: " + new Date());
-
-      aggregate(rs, startTime, endTime);
-
-    } catch (Exception e) {
-      LOG.error("Exception during aggregating metrics.", e);
-      success = false;
     } finally {
-      if (rs != null) {
-        try {
-          rs.close();
-        } catch (SQLException e) {
-          // Ignore
-        }
-      }
-      if (stmt != null) {
-        try {
-          stmt.close();
-        } catch (SQLException e) {
-          // Ignore
-        }
-      }
-      if (conn != null) {
-        try {
-          conn.close();
-        } catch (SQLException sql) {
-          // Ignore
-        }
-      }
+      /* Use the downsampleHostMetricUUIDs only during the aggregation cycle and repopulate it for every new cycle. */
+      downsampleHostMetricUUIDs = null;
     }
 
     LOG.info("End aggregation cycle @ " + new Date());
@@ -342,13 +336,25 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
       CustomDownSampler downSampler = iterator.next();
 
       if (downSampler.validateConfigs()) {
-        EmptyCondition downSamplingCondition = new EmptyCondition();
+/*        EmptyCondition downSamplingCondition = new EmptyCondition();
         downSamplingCondition.setDoUpdate(true);
         List<String> stmts = downSampler.prepareDownSamplingStatement(startTime, endTime, tableName);
         for (String stmt : stmts) {
           downSamplingCondition.setStatement(queryPrefix + stmt);
           runDownSamplerQuery(conn, downSamplingCondition);
         }
+        */
+
+        List<Condition> conditions = downSampler.prepareDownSamplingCondition(startTime, endTime, tableName);
+
+        EmptyCondition downSamplingCondition = new EmptyCondition();
+        downSamplingCondition.setDoUpdate(true);
+
+        for (Condition condition : conditions) {
+          downSamplingCondition.setStatement(queryPrefix + condition.getStatement());
+          runDownSamplerQuery(conn, downSamplingCondition);
+        }
+
       } else {
         LOG.warn("The following downsampler failed config validation : " + downSampler.getClass().getName() + "." +
           "Removing it from downsamplers list.");
@@ -454,7 +460,97 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
    * @return
    */
   protected String getDownsampledMetricSkipClause() {
-    return StringUtils.EMPTY;
+    if (CollectionUtils.isEmpty(this.downsampleMetricPatterns)) {
+      return StringUtils.EMPTY;
+    }
+
+    StringBuilder sb = new StringBuilder(128);
+    sb.append(" UUID NOT IN (SELECT UUID FROM METRICS_METADATA_UUID WHERE");
+
+    for (int i = 0; i < downsampleMetricPatterns.size(); i++) {
+      sb.append(" METRIC_NAME");
+      sb.append(" NOT");
+      sb.append(" LIKE ");
+      sb.append("'" + downsampleMetricPatterns.get(i) + "'");
+
+      if (i < downsampleMetricPatterns.size() - 1) {
+        sb.append(" AND");
+      }
+    }
+
+    sb.append(") AND ");
+    return sb.toString();
+  }
+
+  /**
+   * Returns the UUID NOT LIKE clause if certain metrics or metric patterns are to be skipped
+   * since they will be downsampled.
+   * @return
+   */
+  protected List<byte[]> getDownsampledHostMetricSkipUUIDsClause() {
+    final List<byte[]> uuidsToSkip = new ArrayList<>();
+
+    if (downsampleHostMetricUUIDs == null) {
+      downsampleHostMetricUUIDs = new HashMap<>();
+      String query = "select M.UUID as METRIC_UUID, H.UUID as HOST_UUID, M.METRIC_NAME as METRIC_NAME " +
+          "from METRICS_METADATA_UUID as M, HOSTED_APPS_METADATA_UUID as H " +
+          "where M.METRIC_NAME LIKE ? and H.APP_IDS LIKE '%'||M.APP_ID||'%'";
+
+      try (Connection con = hBaseAccessor.getConnection();
+           PreparedStatement st = con.prepareStatement(query)) {
+        for (String pattern: downsampleMetricPatterns) {
+          List<byte[]> uuids = new ArrayList<>();
+
+          st.setString(1, pattern);
+
+          try (ResultSet rs = st.executeQuery()) {
+            while(rs.next()) {
+              byte[] metric_uuid = rs.getBytes("METRIC_UUID");
+              byte[] host_uuid = rs.getBytes("HOST_UUID");
+              String metricName = rs.getString("METRIC_NAME");
+
+              uuids.add(ArrayUtils.addAll(metric_uuid, host_uuid));
+              uuidsToSkip.addAll(uuids);
+
+              LOG.debug("Metric name [" + metricName + "] and UUID queried for Downsample pattern : " + pattern);
+            }
+            downsampleHostMetricUUIDs.put(pattern, uuids);
+          }
+        }
+      } catch (Exception e) {
+        LOG.error("Error querying the down sampled metrics.", e);
+        downsampleHostMetricUUIDs = null;
+      }
+
+      /* Code to validate the correctness the UUID. Used only for development, otherwise comment it out. */
+      query = "select UUID, SERVER_TIME, METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN " +
+          "from METRIC_RECORD_UUID where UUID = ?";
+      try (Connection con = hBaseAccessor.getConnection();
+           PreparedStatement checkStatement = con.prepareStatement(query)) {
+        for (List<byte[]> uuids: downsampleHostMetricUUIDs.values()) {
+          for (byte[] uuid: uuids) {
+            checkStatement.setBytes(1, uuid);
+            try (ResultSet checkResults = checkStatement.executeQuery()) {
+              while (checkResults.next()) {
+                byte[] check_uuid = checkResults.getBytes("UUID");
+                long check_time = checkResults.getLong("SERVER_TIME");
+                double check_metric_sum = checkResults.getDouble("METRIC_SUM");
+                double check_metric_max = checkResults.getDouble("METRIC_MAX");
+                double check_metric_min = checkResults.getDouble("METRIC_MIN");
+                int check_metric_count = checkResults.getInt("METRIC_COUNT");
+              }
+            }
+          }
+        }
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    } else {
+      for (List<byte[]> uuids : downsampleHostMetricUUIDs.values()) {
+        uuidsToSkip.addAll(uuids);
+      }
+    }
+    return uuidsToSkip;
   }
 
   /**

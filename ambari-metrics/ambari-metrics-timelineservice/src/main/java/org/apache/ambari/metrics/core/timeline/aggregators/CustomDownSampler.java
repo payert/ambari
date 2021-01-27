@@ -20,6 +20,8 @@ package org.apache.ambari.metrics.core.timeline.aggregators;
 
 import java.util.List;
 
+import org.apache.ambari.metrics.core.timeline.query.Condition;
+
 /**
  * Interface to add a custom downsampler.
  * Each configured downsampler will be executed during an aggregation cycle.
@@ -40,5 +42,7 @@ public interface CustomDownSampler {
    * @return
    */
   public List<String> prepareDownSamplingStatement(Long startTime, Long endTime, String tableName);
+
+  public List<Condition> prepareDownSamplingCondition(Long startTime, Long endTime, java.lang.String tableName);
 
 }
